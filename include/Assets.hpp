@@ -19,9 +19,9 @@ class Assets
 	void addAnimation(const std::string& animationName, const std::string& textureName, size_t frames, size_t speed);
 	void addFont(const std::string& fontName, const std::string& path);
 
-	Assets() = default;
 
 public:
+	Assets() = default;
 
 	//singelton class instantiation
 	static Assets& Instance()

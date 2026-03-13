@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <Scene_GE_Menu.h>
 
 GameEngine::GameEngine(const std::string& path)
 {
@@ -74,7 +75,7 @@ void GameEngine::init(const std::string& path)
 	style.Colors[ImGuiCol_WindowBg].w = 0.95f;
 	//style.Colors[ImGuiCol_DockingEmptyBg].w = 0.f;
 
-	changeScene("MENU", std::make_shared<Scene_Menu>(this));
+	changeScene("MENU", std::make_shared<Scene_GE_Menu>(this));
 
 }
 
@@ -178,7 +179,7 @@ void GameEngine::sUserInput()
 	}
 }
 
-void GameEngine::changeScene(const std::string& sceneName, std::shared_ptr<Scene> scene, bool currentScene)
+void GameEngine::changeScene(const std::string& sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene)
 {
 	if (scene)
 	{
@@ -192,6 +193,12 @@ void GameEngine::changeScene(const std::string& sceneName, std::shared_ptr<Scene
 			return;
 		}
 	}
+
+	if (endCurrentScene)
+	{
+		m_SceneMap.erase(m_SceneMap.find(m_currentScene));
+	}
+	m_currentScene = sceneName;
 }
 
 void GameEngine::update()

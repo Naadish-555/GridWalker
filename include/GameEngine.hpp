@@ -38,9 +38,9 @@ protected:
 public:
 	GameEngine(const std::string& path);
 
-	void changeScene(const std::string& sceneName, std::shared_ptr<Scene> scene, bool currentScene = false);
+	void changeScene(const std::string& sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene = false);
 	void run();
-	void quit() { m_running = false; }
+	void quit() { m_running = false ; }
 
 	sf::RenderWindow& window() { return m_window; }
 	const Assets& getAssets() const { return m_assets; }
