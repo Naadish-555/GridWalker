@@ -1,0 +1,44 @@
+# ==========================================
+# WINDOW SETTINGS
+# Order: Width, Height, Red, Green, Blue, FrameLimit, Fullscreen (0=Windowed, 1=Fullscreen)
+# R,G,B values for window background color
+# ==========================================
+Window 1920 1080 25 25 25 60 0 
+
+# ==========================================
+# FONT SETTINGS
+# Order: FilePath, Size, Red, Green, Blue
+# ==========================================
+Font tech.ttf 24 255 255 255
+
+# ==========================================
+# BOID SETTINGS
+# Order: 
+# 1. BoidsToSpawn (Int)
+# 2. MaxNeighbors (Int) - for optimization 
+# 3. VisionDistance (Float)
+# 4. AvoidDistance (Float)
+# 5. MaxSpeed (Float)
+# 6. MinSpeed (Float)
+# 7. SteeringStrength (Float) - How fast they turn
+# ==========================================
+Boid 200 30 45.0 20.0 3.0 0.1 0.01
+
+# ==========================================
+# FLOCKING WEIGHTS
+# Order: Separation, Alignment, Cohesion
+# (Higher values mean that rule dominates behavior)
+# ==========================================
+Flock 1.5 1.0 1.0
+
+# ==========================================
+# PREDATOR SETTINGS
+# Order:
+# 1. LoopTraverseMode (1=Circle, 2=Infinity, 3=Spiral)
+# 2. FOV (Degrees)
+# 3. FearRadius (Pixels) - How far away boids get scared
+# 4. FearStrength (Float) - How hard boids push away
+# 5. LoopRadius (Pixels) - Size of the patrol path
+# 6. PredatorSpeed (Pixels/Sec)
+# ==========================================
+Predator 2 150.0 150.0 3.0 150.0 150.0
