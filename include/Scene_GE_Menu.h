@@ -15,11 +15,12 @@ protected:
 
 	void init();
 	void update();
-	void sDoAction(const Action& action);
 	void onEnd();
 
 public:
 	Scene_GE_Menu() = default;
 	Scene_GE_Menu(GameEngine* gameEngine = nullptr);
+	
 	void sRender();
+	void sDoAction(const Action& action);
 };

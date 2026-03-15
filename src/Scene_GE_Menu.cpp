@@ -1,5 +1,6 @@
 #include "GameEngine.hpp"
 #include "Scene_GE_Menu.h"
+#include "Scene_Platformer.h"
 //load all other includes for other scenes for loading
 
 #include<iostream>
@@ -45,7 +46,7 @@ void Scene_GE_Menu::sDoAction(const Action& action)
 		{
 			if (m_menuStrings[m_currentMenuIndex] == "Platformer")
 			{
-				//m_game->changeScene("PLATFORMER", std::make_shared<Scene_Platformer>(m_game, m_levelPaths[m_currentMenuIndex]));;
+				m_game->changeScene("PLATFORMER", std::make_shared<Scene_Platformer>(m_game, m_levelPaths[m_currentMenuIndex]));;
 			}
 			else if (m_menuStrings[m_currentMenuIndex] == "Boids Sim")
 			{

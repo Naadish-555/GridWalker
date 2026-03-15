@@ -19,6 +19,7 @@ protected:
 	bool						m_hasEnded		= false;
 	size_t						m_currentFrame	= 0;
 
+	virtual void update() = 0;
 	virtual void onEnd() = 0;
 
 	void setPause(bool paused)
@@ -33,7 +34,6 @@ public:
 		: m_game(gameEngine)
 	{}
 
-	virtual void update() = 0;
 	virtual void sDoAction(const Action& action) = 0;
 	virtual void sRender() = 0;
 
