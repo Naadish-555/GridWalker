@@ -1,5 +1,5 @@
 #include "Assets.hpp"
-#include "Animation.hpp"
+
 
 ///use this same method for loading levels
 void Assets::loadFromFile(const std::string& path)
@@ -41,7 +41,7 @@ void Assets::addTexture(const std::string& textureName, const std::string& path,
 	m_textureMap[textureName] = sf::Texture();
 	if (!m_textureMap[textureName].loadFromFile(path))
 	{
-		std::cerr << "Could not load texture from file" << path << std::endl;
+		std::cerr << "Could not load texture from file " << path << std::endl;
 		m_textureMap.erase(textureName);
 	}
 	else

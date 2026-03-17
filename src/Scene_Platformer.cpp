@@ -51,13 +51,13 @@ void Scene_Platformer::loadLevel(const std::string& fileName)
 	}
 
 	auto block = m_entityManager.addEntity("tile");
-	block->add<CAnimation>(Assets::Instance().getAnimation("Block"), true);
+	block->add<CAnimation>(Assets::Instance().getAnimation("Box"), true);
 	block->add<CTransform>(Vec2(224, 480));
 	//addeed a bounding box, will show up if press the 'B' key
-	block->add<CBoundingBox>(Assets::Instance().getAnimation("Block").getSize());
+	block->add<CBoundingBox>(Assets::Instance().getAnimation("Box").getSize());
 
 	auto question = m_entityManager.addEntity("tile");
-	question->add<CAnimation>(Assets::Instance().getAnimation("Question"), true);
+	question->add<CAnimation>(Assets::Instance().getAnimation("MetalBox"), true);
 	question->add<CTransform>(Vec2(352, 480));
 }
 
@@ -76,10 +76,10 @@ void Scene_Platformer::spawnPlayer()
 	if (!m_player) { m_player = m_entityManager.addEntity("player"); }
 
 	//here is a sample player entity which you can use to construct other entities
-	m_player->add<CAnimation>(Assets::Instance().getAnimation("Stand"), true);
+	m_player->add<CAnimation>(Assets::Instance().getAnimation("Idle"), true);
 	m_player->add<CTransform>(Vec2(224, 352));
 	m_player->add<CBoundingBox>(Vec2(48, 48));
-	m_player->add<CState>("stand");
+	m_player->add<CState>("idle");
 	m_player->add<CInput>();
 
 	//TODO :  add remaining components to the player
@@ -189,6 +189,12 @@ void Scene_Platformer::sAnimation()
 
 void Scene_Platformer::sGUI()
 {
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, {});
+	ImGui::PushStyleColor(ImGuiCol_DockingEmptyBg, {});
+	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+	ImGui::PopStyleColor(2);
+	
+
 	ImGui::Begin("Scene Properties");
 	if (ImGui::BeginTabBar("Debug"))
 	{
@@ -243,7 +249,7 @@ void Scene_Platformer::sRender()
 	if (!m_paused) { m_game->window().clear(sf::Color(100, 100, 255)); }
 	else { m_game->window().clear(sf::Color(50, 50, 150)); }
 
-	sf::Font gridFont(Assets::Instance().getFont("Tech"));
+	sf::Font gridFont(Assets::Instance().getFont("Arcade"));
 	sf::Text gridText;
 	gridText.setFont(gridFont);
 	gridText.setCharacterSize(12);

@@ -1,1 +1,1 @@
-Platformer readme 
+GridWalker readme 

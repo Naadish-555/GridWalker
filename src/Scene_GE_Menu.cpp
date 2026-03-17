@@ -19,8 +19,10 @@ void Scene_GE_Menu::init()
 	m_menuStrings.emplace_back("Exit");
 
 	
-	m_font.loadFromFile(RESOURCES_PATH "tech.ttf");
+	m_font.loadFromFile(RESOURCES_PATH "fonts/arcade.ttf");
 	m_menuText.setFont(m_font);
+
+	m_levelPaths.emplace_back( "D:/SFML C++ Projects/Platformer/resources/levels/level.txt");
 
 	//inputs for menu scene
 	registerAction(sf::Keyboard::W, "UP");
@@ -91,7 +93,7 @@ void Scene_GE_Menu::sRender()
 	//window.draw(m_menuText);
 
 	//selectable menu options
-	m_menuText.setCharacterSize(40);
+	m_menuText.setCharacterSize(35);
 	m_menuTextBackground.setSize(sf::Vector2f(200, 75));
 	m_menuTextBackground.setFillColor(sf::Color(158, 97, 22));
 

@@ -1,5 +1,3 @@
-
-
 cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -31,8 +29,6 @@ endif()
 project(Platformer)
 
 
-
-
 #Add SFML, and here you would add other libraries if needed!
 add_subdirectory(thirdparty/SFML-2.6.1)
 add_subdirectory(thirdparty/imgui-docking)
@@ -49,7 +45,34 @@ add_executable("${CMAKE_PROJECT_NAME}")
 
 set_property(TARGET "${CMAKE_PROJECT_NAME}" PROPERTY CXX_STANDARD 17)
 
+# =========================================================================
+# THE BULLETPROOF ASSET COPY FIX
+# This forces CMake to copy the resources folder EVERY time you build the game
+# =========================================================================
+add_custom_command(
+    TARGET "${CMAKE_PROJECT_NAME}" POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources"
+    "$<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}>/resources"
+)
 
+# Safely find and copy assets.txt right next to the .exe
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets.txt")
+    add_custom_command(
+        TARGET "${CMAKE_PROJECT_NAME}" POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/assets.txt"
+        "$<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}>/assets.txt"
+    )
+elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/resources/assets.txt")
+    add_custom_command(
+        TARGET "${CMAKE_PROJECT_NAME}" POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/assets.txt"
+        "$<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}>/assets.txt"
+    )
+endif()
+# =========================================================================
 
 if(PRODUCTION_BUILD)
 	# setup the ASSETS_PATH macro to be in the root folder of your exe
@@ -71,16 +94,12 @@ if(MSVC) # If using the VS compiler...
 
 	target_compile_definitions("${CMAKE_PROJECT_NAME}" PUBLIC _CRT_SECURE_NO_WARNINGS)
 
-
 	#YOU CAN REMOVE THE CONSOLE WITH THIS LINE! YOU CAN EVEN DO AN IF PRODUCTION_BUILD TO REMOVE IT ONLY IN PRODUCTION BUILDS
 	#set_target_properties("${CMAKE_PROJECT_NAME}" PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup") #no console
 	
-
-
 endif()
 
 target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
-
 
 
 # Link SFML libraries statically, Here wou would add other libraries!

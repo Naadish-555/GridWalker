@@ -19,7 +19,6 @@ class GameEngine
 {
 protected:
 	sf::RenderWindow m_window;
-	Assets			 m_assets;
 	std::string		 m_currentScene;
 	SceneMap		 m_SceneMap;
 	size_t			 m_simulationSpeed = 1;
@@ -43,7 +42,6 @@ public:
 	void quit() { m_running = false ; }
 
 	sf::RenderWindow& window() { return m_window; }
-	const Assets& getAssets() const { return m_assets; }
 	bool isRunning() { return m_running && m_window.isOpen(); }
 	const int getFps() const { return m_fps; }
 };
