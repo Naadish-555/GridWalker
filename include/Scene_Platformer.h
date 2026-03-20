@@ -29,6 +29,9 @@ protected :
 	Vec2 gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity);
 
 	void spawnPlayer();
+
+	void spawnLevelTiles(std::string& tag, std::string& animName , float gridX, float gridY);
+
 	void spawnBullet();
 
 	void update();

@@ -19,8 +19,7 @@ void Scene_GE_Menu::init()
 	m_menuStrings.emplace_back("Exit");
 
 	
-	m_font.loadFromFile(RESOURCES_PATH "fonts/arcade.ttf");
-	m_menuText.setFont(m_font);
+	m_menuText.setFont(Assets::Instance().getFont("Bills"));
 
 	m_levelPaths.emplace_back( "D:/SFML C++ Projects/Platformer/resources/levels/level.txt");
 

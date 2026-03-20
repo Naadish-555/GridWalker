@@ -1,4 +1,5 @@
 #include "Scene_Platformer.h"
+#include "Scene_GE_Menu.h"
 #include "Physics.hpp"
 #include "Assets.hpp"
 #include "GameEngine.hpp"
@@ -16,11 +17,12 @@ Scene_Platformer::Scene_Platformer(GameEngine* gameEngine, const std::string& le
 void Scene_Platformer::init(const std::string& levelPath)
 {
 	registerAction(sf::Keyboard::Scancode::P,		"PAUSE");
-	registerAction(sf::Keyboard::Scancode::Escape,	"QUIT");
+	registerAction(sf::Keyboard::Scancode::M,		"QUIT");
 	registerAction(sf::Keyboard::Scancode::T,		"TOGGLE_TEXTURE");
 	registerAction(sf::Keyboard::Scancode::B,		"TOGGLE_COLLISION");
 	registerAction(sf::Keyboard::Scancode::G,		"TOGGLE_GRID");
 
+	
 	//TODO : Register all other gameplay actions
 
 	loadLevel(levelPath);
@@ -31,8 +33,27 @@ void Scene_Platformer::loadLevel(const std::string& fileName)
 	//reset the entitymanager eveerytime we load a level
 	m_entityManager = EntityManager();
 
+	std::ifstream fin(fileName);
+	std::string input, tag , animName;
+	float gridX = 0, gridY = 0;
+	while (fin.good())
+	{
+		fin >> input;
+		std::cout << "Token read [" << input << " ]" << std::endl;
+		if (input == "Tile" || input == "Dec")
+		{
+			tag = input;
+			fin >> animName >> gridX >> gridY;
+			spawnLevelTiles(tag, animName, gridX, gridY);
+		}
+		else if (input == "Player")
+		{
+			fin >> m_playerConfig.X >> m_playerConfig.Y >> m_playerConfig.CX >> m_playerConfig.CY >> m_playerConfig.SPEED >> m_playerConfig.MAXSPEED >> m_playerConfig.JUMP >> m_playerConfig.GRAVITY >> m_playerConfig.weapon;
+		}
+	}
 	//TODO: read in the level file and the appropriate entities
 	//use m_playerConfig to store player properties
+
 
 	//NOTE : below code is sample code for setting up and using entities , remove it later
 	spawnPlayer();
@@ -41,7 +62,7 @@ void Scene_Platformer::loadLevel(const std::string& fileName)
 	auto brick = m_entityManager.addEntity("tile");
 	//NOTE : always add the CAnimation component first so that the gridToMidPixel can al
 	brick->add<CAnimation>(Assets::Instance().getAnimation("Brick"), true);
-	brick->add<CTransform>(Vec2(96,480));
+	brick->add<CTransform>(gridToMidPixel(1, 3, brick));
 	//NOTE : final code should use position from aseets.txt and utilise gridToMidPixel function
 	//brick->add<CTransform>(gridToMidPixel(gridX,gridY,brick));
 
@@ -52,7 +73,12 @@ void Scene_Platformer::loadLevel(const std::string& fileName)
 
 	auto block = m_entityManager.addEntity("tile");
 	block->add<CAnimation>(Assets::Instance().getAnimation("Box"), true);
-	block->add<CTransform>(Vec2(224, 480));
+	block->add<CTransform>(Vec2(224, 550));
+	
+	auto block2 = m_entityManager.addEntity("tile");
+	block2->add<CAnimation>(Assets::Instance().getAnimation("Box"), true);
+	block2->add<CTransform>(gridToMidPixel(3,6,block2));
+
 	//addeed a bounding box, will show up if press the 'B' key
 	block->add<CBoundingBox>(Assets::Instance().getAnimation("Box").getSize());
 
@@ -63,10 +89,14 @@ void Scene_Platformer::loadLevel(const std::string& fileName)
 
 Vec2 Scene_Platformer::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity)
 {
+	
 	//TODO : This function takes in a grid (x,y) position and an entity
 	//return a vec2 indicating where the center posistion of the entity should be
-
-	return Vec2(0,0);
+	//Vec2 gridPos = Vec2((gridX / m_gridSize.x) ,  gridY / m_gridSize.y); //bottom left
+	auto halfSize = entity->get<CAnimation>().animation.getSize() / 2.0f;
+	float x = (gridX * m_gridSize.x) + halfSize.x;
+	float y = (height() - (gridY * m_gridSize.y)) - halfSize.y;
+	return Vec2(x , y);
 }
 
 void Scene_Platformer::spawnPlayer()
@@ -77,13 +107,30 @@ void Scene_Platformer::spawnPlayer()
 
 	//here is a sample player entity which you can use to construct other entities
 	m_player->add<CAnimation>(Assets::Instance().getAnimation("Idle"), true);
-	m_player->add<CTransform>(Vec2(224, 352));
-	m_player->add<CBoundingBox>(Vec2(48, 48));
+	m_player->add<CTransform>(gridToMidPixel(m_playerConfig.X,m_playerConfig.Y,m_player));
+	m_player->add<CBoundingBox>(Vec2(m_playerConfig.CX, m_playerConfig.CY));
 	m_player->add<CState>("idle");
 	m_player->add<CInput>();
 
 	//TODO :  add remaining components to the player
 
+}
+
+void Scene_Platformer::spawnLevelTiles(std::string& tag, std::string& animName, float gridX, float gridY)
+{
+	if (tag == "Tile")
+	{
+		auto tile = m_entityManager.addEntity(tag);
+		tile->add<CAnimation>(Assets::Instance().getAnimation(animName), true);
+		tile->add<CTransform>(gridToMidPixel(gridX, gridY, tile));
+		tile->add<CBoundingBox>(Assets::Instance().getAnimation(animName).getSize());
+	}
+	else if (tag == "Dec")
+	{
+		auto dec = m_entityManager.addEntity(tag);
+		dec->add<CAnimation>(Assets::Instance().getAnimation(animName), true);
+		dec->add<CTransform>(gridToMidPixel(gridX, gridY, dec));
+	}
 }
 
 void Scene_Platformer::spawnBullet()
@@ -96,6 +143,7 @@ void Scene_Platformer::onEnd()
 {
 	//TODO : when the scene ends, change back to MENU scene
 	// use m_game.changeScene();
+	m_game->changeScene("MENU", std::make_shared<Scene_GE_Menu>(m_game),true);
 }
 
 void Scene_Platformer::update()
@@ -249,7 +297,7 @@ void Scene_Platformer::sRender()
 	if (!m_paused) { m_game->window().clear(sf::Color(100, 100, 255)); }
 	else { m_game->window().clear(sf::Color(50, 50, 150)); }
 
-	sf::Font gridFont(Assets::Instance().getFont("Arcade"));
+	sf::Font gridFont(Assets::Instance().getFont("Bills"));
 	sf::Text gridText;
 	gridText.setFont(gridFont);
 	gridText.setCharacterSize(12);
@@ -273,7 +321,7 @@ void Scene_Platformer::sRender()
 				sf::Sprite sprite = e->get<CAnimation>().animation.getSprite();
 				sprite.setRotation(transform.angle);
 				sprite.setPosition(transform.pos.x,transform.pos.y);
-				sprite.setScale(transform.scale.x,transform.scale.y);
+				sprite.setScale(transform.scale.x,transform.scale.y );
 
 				m_game->window().draw(sprite);
 

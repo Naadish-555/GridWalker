@@ -1,30 +1,33 @@
-Texture     TexIdle       resources/images/player/Virtual_Guy/Idle.png
-Texture     TexRun        resources/images/player/Virtual_Guy/Run.png
-Texture     TexJump       resources/images/player/Virtual_Guy/Jump.png
-Texture     TexBuster     resources/images/player/Buster_29x27.png
-Texture     TexExplode    resources/images/misc/Explode.png
-Texture     TexCoin       resources/images/misc/Kiwi.png
-Texture     TexCollected  resources/images/misc/Collected.png
-Texture     TexBox        resources/images/misc/Box.png
-Texture     TexMetalBox   resources/images/misc/MetalBox.png
-Texture     TexSpikeyHead resources/images/misc/SpikeHead.png
-Texture     TexGround1    resources/images/terrain/Ground1.png
-Texture     TexGround2    resources/images/terrain/Ground2.png
-Texture     TexBrick      resources/images/terrain/Brick.png
-Texture     TexFlag       resources/images/misc/Flag.png
-Animation   Idle          TexIdle       11   10
-Animation   Run           TexRun        11   10
-Animation   Jump          TexJump       1    0
-Animation   Buster        TexBuster     1    0
-Animation   Explosion     TexExplode    7    2
-Animation   Coin          TexCoin       17   5
-Animation   Collected     TexCollected  6    5
-Animation   Box      	  TexBox        1    0
-Animation   MetalBox      TexMetalBox   1    0
-Animation   SpikeyHead    TexSpikeyHead 4    5
-Animation   Ground1       TexGround1    1    0
-Animation   Ground2       TexGround2    1    0
-Animation   Brick	  TexBrick      1    0
-Animation   Flag   	  TexFlag       10   5
-Font 	    Tech	  resources/fonts/tech.ttf
-Font 	    Arcade	  resources/fonts/arcade.ttf
+Texture     TexIdle       	resources/images/player/Virtual_Guy/Idle.png
+Texture     TexRun        	resources/images/player/Virtual_Guy/Run.png
+Texture     TexJump       	resources/images/player/Virtual_Guy/Jump.png
+Texture     TexBuster     	resources/images/player/Buster_8.png
+Texture     TexBusterGolden     resources/images/player/Buster_16.png
+Texture     TexExplode    	resources/images/misc/Explode.png
+Texture     TexCoin       	resources/images/misc/Kiwi.png
+Texture     TexCollected  	resources/images/misc/Collected.png
+Texture     TexBox        	resources/images/misc/Box.png
+Texture     TexMetalBox   	resources/images/misc/MetalBox.png
+Texture     TexSpikeyHead 	resources/images/misc/SpikeHead.png
+Texture     TexGround1    	resources/images/terrain/Ground1.png
+Texture     TexGround2    	resources/images/terrain/Ground2.png
+Texture     TexBrick      	resources/images/terrain/Brick.png
+Texture     TexFlag       	resources/images/misc/Flag.png
+Animation   Idle          	TexIdle       	11   10
+Animation   Run           	TexRun        	11   10
+Animation   Jump          	TexJump       	1    0
+Animation   Buster        	TexBuster     	1    0
+Animation   BusterGolden        TexBusterGolden	1    0
+Animation   Explosion     	TexExplode    	7    2
+Animation   Coin          	TexCoin       	17   5
+Animation   Collected     	TexCollected  	6    5
+Animation   Box      	  	TexBox        	1    0
+Animation   MetalBox      	TexMetalBox   	1    0
+Animation   SpikeyHead    	TexSpikeyHead 	4    5
+Animation   Ground1       	TexGround1    	1    0
+Animation   Ground2       	TexGround2    	1    0
+Animation   Brick	  	TexBrick      	1    0
+Animation   Flag   	  	TexFlag       	10   5
+Font 	    Tech	  	resources/fonts/tech.ttf
+Font 	    Arcade	  	resources/fonts/arcade.ttf
+Font 	    Bills	  	resources/fonts/bills.otf
