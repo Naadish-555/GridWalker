@@ -10,7 +10,6 @@ using ComponentTuple = std::tuple<
 	CAnimation,
 	CBoundingBox,
 	CGravity,
-	CGravity,
 	CState,
 	CMesh,
 	//CShape,

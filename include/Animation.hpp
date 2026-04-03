@@ -48,7 +48,7 @@ public:
 
 	bool hasEnded() const
 	{
-		if (m_currentFrame == m_frameCount * m_speed)
+		if (m_currentFrame == (m_frameCount * m_speed) - 1)
 			return true;
 		return false;
 	}

@@ -114,6 +114,7 @@ public:
 	bool down = false;
 	bool left = false;
 	bool right = false;
+	bool jump = false;
 	bool shoot = false;
 	bool canShoot = true;
 	bool canJump = true;

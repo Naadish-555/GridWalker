@@ -13,6 +13,8 @@ Scene_GE_Menu::Scene_GE_Menu(GameEngine* gameEngine)
 
 void Scene_GE_Menu::init()
 {
+	m_game->window().setView(m_game->window().getDefaultView());
+	
 	m_menuStrings.emplace_back("Platformer");
 	m_menuStrings.emplace_back("Boids Sim");
 	m_menuStrings.emplace_back("Poly Wars");
@@ -92,7 +94,7 @@ void Scene_GE_Menu::sRender()
 	//window.draw(m_menuText);
 
 	//selectable menu options
-	m_menuText.setCharacterSize(35);
+	m_menuText.setCharacterSize(30);
 	m_menuTextBackground.setSize(sf::Vector2f(200, 75));
 	m_menuTextBackground.setFillColor(sf::Color(158, 97, 22));
 

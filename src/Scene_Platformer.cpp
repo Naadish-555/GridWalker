@@ -16,6 +16,13 @@ Scene_Platformer::Scene_Platformer(GameEngine* gameEngine, const std::string& le
 
 void Scene_Platformer::init(const std::string& levelPath)
 {
+	registerAction(sf::Keyboard::Scancode::W,		"UP");
+	registerAction(sf::Keyboard::Scancode::A,		"LEFT");
+	registerAction(sf::Keyboard::Scancode::S,		"DOWN");
+	registerAction(sf::Keyboard::Scancode::D,		"RIGHT");
+	registerAction(sf::Keyboard::Scancode::K,		"SHOOT");
+	registerAction(sf::Keyboard::Scancode::J,		"JUMP");
+
 	registerAction(sf::Keyboard::Scancode::P,		"PAUSE");
 	registerAction(sf::Keyboard::Scancode::M,		"QUIT");
 	registerAction(sf::Keyboard::Scancode::T,		"TOGGLE_TEXTURE");
@@ -59,7 +66,7 @@ void Scene_Platformer::loadLevel(const std::string& fileName)
 	spawnPlayer();
 
 	//some sample entities
-	auto brick = m_entityManager.addEntity("tile");
+	auto brick = m_entityManager.addEntity("Tile");
 	//NOTE : always add the CAnimation component first so that the gridToMidPixel can al
 	brick->add<CAnimation>(Assets::Instance().getAnimation("Brick"), true);
 	brick->add<CTransform>(gridToMidPixel(1, 3, brick));
@@ -71,20 +78,21 @@ void Scene_Platformer::loadLevel(const std::string& fileName)
 		//could be a good way of identifying entity tile brick
 	}
 
-	auto block = m_entityManager.addEntity("tile");
+	auto block = m_entityManager.addEntity("Tile");
 	block->add<CAnimation>(Assets::Instance().getAnimation("Box"), true);
 	block->add<CTransform>(Vec2(224, 550));
 	
-	auto block2 = m_entityManager.addEntity("tile");
+	auto block2 = m_entityManager.addEntity("Tile");
 	block2->add<CAnimation>(Assets::Instance().getAnimation("Box"), true);
 	block2->add<CTransform>(gridToMidPixel(3,6,block2));
 
 	//addeed a bounding box, will show up if press the 'B' key
 	block->add<CBoundingBox>(Assets::Instance().getAnimation("Box").getSize());
 
-	auto question = m_entityManager.addEntity("tile");
+	auto question = m_entityManager.addEntity("Tile");
 	question->add<CAnimation>(Assets::Instance().getAnimation("MetalBox"), true);
 	question->add<CTransform>(Vec2(352, 480));
+
 }
 
 Vec2 Scene_Platformer::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity)
@@ -103,14 +111,16 @@ void Scene_Platformer::spawnPlayer()
 {
 	//check to see if a player already exists before adding a new one
 	//if it already exists just overwrite the values of existing one
-	if (!m_player) { m_player = m_entityManager.addEntity("player"); }
+	if (!m_player) { m_player = m_entityManager.addEntity("Player"); }
 
 	//here is a sample player entity which you can use to construct other entities
 	m_player->add<CAnimation>(Assets::Instance().getAnimation("Idle"), true);
 	m_player->add<CTransform>(gridToMidPixel(m_playerConfig.X,m_playerConfig.Y,m_player));
 	m_player->add<CBoundingBox>(Vec2(m_playerConfig.CX, m_playerConfig.CY));
-	m_player->add<CState>("idle");
+	m_player->add<CState>("Idle");
+	m_player->add<CGravity>(m_playerConfig.GRAVITY);
 	m_player->add<CInput>();
+
 
 	//TODO :  add remaining components to the player
 
@@ -121,15 +131,22 @@ void Scene_Platformer::spawnLevelTiles(std::string& tag, std::string& animName, 
 	if (tag == "Tile")
 	{
 		auto tile = m_entityManager.addEntity(tag);
+		//Vec2 pos = gridToMidPixel(gridX, gridY, tile);
+		
 		tile->add<CAnimation>(Assets::Instance().getAnimation(animName), true);
 		tile->add<CTransform>(gridToMidPixel(gridX, gridY, tile));
 		tile->add<CBoundingBox>(Assets::Instance().getAnimation(animName).getSize());
+
+		//tile->get<CTransform>().prevPos = pos;
 	}
 	else if (tag == "Dec")
 	{
 		auto dec = m_entityManager.addEntity(tag);
+		//Vec2 pos = gridToMidPixel(gridX, gridY, dec);
 		dec->add<CAnimation>(Assets::Instance().getAnimation(animName), true);
 		dec->add<CTransform>(gridToMidPixel(gridX, gridY, dec));
+		
+		//dec->get<CTransform>().prevPos = pos;
 	}
 }
 
@@ -137,7 +154,21 @@ void Scene_Platformer::spawnBullet()
 {
 	//TODO : reuse function from poly wars
 	// make sure bullet goes in dxn the player is facing
+	auto bullet = m_entityManager.addEntity("Bullet");
+	auto& playerTf = m_player->get<CTransform>();
+
+	float bOffset = 10.0f;
+	float bSpeed = 15.0f;
+
+
+	bullet->add<CAnimation>(Assets::Instance().getAnimation("BusterGolden"), true);
+	bullet->add<CTransform>(Vec2(playerTf.pos.x, playerTf.pos.y + bOffset));
+	bullet->add<CBoundingBox>(Assets::Instance().getAnimation("BusterGolden").getSize());
+	
+	auto& bulletTf = bullet->get<CTransform>();
+	bulletTf.velocity.x = playerTf.scale.x * bSpeed;
 }
+
 
 void Scene_Platformer::onEnd()
 {
@@ -167,15 +198,36 @@ void Scene_Platformer::sDoAction(const Action& action)
 {
 	if (action.type() == "START")
 	{
-		if(action.name() == "TOGGLE_TEXTURE")			{ m_drawTextures = !m_drawTextures ;}
+
+		//player inputs
+		if (action.name() == "UP")						{ m_player->get<CInput>().up = true; }
+		else if (action.name() == "LEFT")				{ m_player->get<CInput>().left = true; }
+		else if (action.name() == "DOWN")				{ m_player->get<CInput>().down = true; }
+		else if (action.name() == "RIGHT")				{ m_player->get<CInput>().right = true; }
+		else if (action.name() == "JUMP")				{ m_player->get<CInput>().jump  = true; }
+		else if (action.name() == "SHOOT")				{ m_player->get<CInput>().shoot = true; }
+		//debug
+		else if(action.name() == "TOGGLE_TEXTURE")		{ m_drawTextures = !m_drawTextures ;}
 		else if(action.name() == "TOGGLE_COLLISION")	{ m_drawCollision = !m_drawCollision;}
 		else if(action.name() == "TOGGLE_GRID")			{ m_drawGrid = !m_drawGrid; }
 		else if(action.name() == "PAUSE")				{ setPause(!m_paused);}
 		else if(action.name() == "QUIT")				{ onEnd(); }
-		else if(action.name() == "RIGHT")				{ m_player->get<CInput>().right = true; }
+		
 	}
 	else if (action.type() == "END")
 	{
+		//player inputs
+		if (action.name() == "UP")						{ m_player->get<CInput>().up = false; }
+		else if (action.name() == "LEFT")				{ m_player->get<CInput>().left = false; }
+		else if (action.name() == "DOWN")				{ m_player->get<CInput>().down = false; }
+		else if (action.name() == "RIGHT")				{ m_player->get<CInput>().right = false; }
+		else if (action.name() == "JUMP")				{ m_player->get<CInput>().jump = false; }
+		else if (action.name() == "SHOOT")				
+		{ 
+			m_player->get<CInput>().shoot = false; 
+			m_player->get<CInput>().canShoot = true; 
+
+		}
 
 	}
 }
@@ -186,9 +238,88 @@ void Scene_Platformer::sMovement()
 {
 	//TODO :
 	// implement player movement/jumping based on its CInput component
+	auto& input = m_player->get<CInput>();
+	auto& tf = m_player->get<CTransform>();
+	auto& state = m_player->get<CState>();
+	auto& gravity = m_player->get<CGravity>();
+	float accel = 0.5f;
+
+	if (input.left)
+	{
+		if (tf.velocity.x > -m_playerConfig.SPEED)
+			tf.velocity.x = -m_playerConfig.SPEED;
+		else
+			tf.velocity.x -= accel;
+
+		if (tf.velocity.x <= m_playerConfig.MAXSPEED)
+			tf.velocity.x = -m_playerConfig.MAXSPEED;
+
+		tf.scale.x = -1;
+	}
+	else if (input.right)
+	{
+		if (tf.velocity.x < m_playerConfig.SPEED)
+			tf.velocity.x = m_playerConfig.SPEED;
+		else
+			tf.velocity.x += accel;
+
+		if (tf.velocity.x >= m_playerConfig.MAXSPEED)
+			tf.velocity.x = m_playerConfig.MAXSPEED;
+		tf.scale.x = 1;
+	}
+	else if (input.down)
+	{
+		tf.velocity.y = m_playerConfig.JUMP;
+	}
+	else
+	{
+		tf.velocity.x = 0;
+		tf.velocity.y = 0;
+	}
+	if (input.jump && input.canJump)
+	{
+		tf.velocity.y = -m_playerConfig.JUMP;
+	}
+	if (!input.jump && tf.velocity.y < 0)
+	{
+		tf.velocity.y *= 0.5f;
+	}
+
+	
+
+
+	if (input.shoot && input.canShoot)
+	{
+		spawnBullet();
+		input.canShoot = false;
+		std::cout << "prev pos : " << tf.prevPos.x << " , " << tf.prevPos.y << std::endl;
+		std::cout << "current pos : " <<tf.pos.x << " , " << tf.pos.y << std::endl;
+	}
+
+	tf.prevPos = tf.pos;
+	tf.pos += tf.velocity;
+	tf.velocity.y += m_playerConfig.GRAVITY;
+	if (tf.velocity.x != 0 )
+	{
+		state.state = "Run";
+	}
+	else if(tf.velocity.x == 0)
+	{
+		state.state = "Idle";
+	}
+		
+	for (auto& e : m_entityManager.getEntities())
+	{
+		if (e->tag() == "Player") { continue; }
+
+		e->get<CTransform>().prevPos = e->get<CTransform>().pos;
+		e->get<CTransform>().pos += e->get<CTransform>().velocity;
+	}
+
 	// Implement gravity effect on player
 	// Implement the maximum player speed in both X and Y directions
 	// Note : Setting an entity's scale.x to -1/1 will make it face to left/right
+
 }
 
 void Scene_Platformer::sLifeSpan()
@@ -204,7 +335,63 @@ void Scene_Platformer::sCollision()
 	//and gravity will have a positive y-component
 	//Also something below else will have a y value grater than it
 	//something above something else will have a y value less than it
+	for (auto& t : m_entityManager.getEntities("Tile"))
+	{
 
+		//player collision
+		if (Physics::IsCollision(m_player, t))
+		{
+			Vec2 ol = Physics::GetOverlap(m_player, t);
+			Vec2 prevOl = Physics::GetPreviousOverlap(m_player, t);
+		
+			auto& pTf = m_player->get<CTransform>();
+			auto& pBB = m_player->get<CBoundingBox>();
+			auto& tTf = t->get<CTransform>();
+			auto& tBB = t->get<CBoundingBox>();
+
+			/*if(m_player->get<CInput>().up)
+			{		
+				std::cout << "current : " << ol.x << " , " << ol.y << std::endl;
+				std::cout << "prev :  " << prevOl.x << " , " << prevOl.y << std::endl;
+			}*/
+
+			//collision resolution
+			if (prevOl.y > 0)
+			{
+
+				if(pTf.pos.x  < tTf.pos.x ) //player is left
+					pTf.pos.x -= ol.x;
+				else
+					pTf.pos.x += ol.x;
+				pTf.velocity.x = 0;	
+			}
+			else if (prevOl.x > 0)
+			{
+				if (pTf.pos.y > tTf.pos.y) //player is below
+					pTf.pos.y += ol.y;
+				else
+					pTf.pos.y -= ol.y;
+				pTf.velocity.y = 0;
+			}
+		}
+
+		//bullet collision
+		for (auto& b : m_entityManager.getEntities("Bullet"))
+		{
+			if (!Physics::IsCollision(b, t)) { continue; }
+			auto& tTf = t->get<CTransform>();
+			std::cout << "bullet collision detected with tile" << std::endl;
+			b->destroy();
+			auto& explosion = m_entityManager.addEntity("Explosion");
+			explosion->add<CAnimation>(Assets::Instance().getAnimation("Explosion"), false);
+			explosion->add<CTransform>(Vec2(tTf.pos.x, tTf.pos.y));
+			t->destroy();
+		}
+		
+		
+		
+		
+	}
 	//TODO : Implement Physcics::GetOverlap() and use it inside this function
 
 	//TODO ;: Implement bullet/tile collisions
@@ -221,18 +408,46 @@ void Scene_Platformer::sCollision()
 void Scene_Platformer::sAnimation()
 {
 	//TODO : complete the Animation class code first
+	auto& currentState = m_player->get<CState>().state;
+	auto& currentAnim = m_player->get<CAnimation>().animation.getName();
+
+
+	//TODO : set the animation of the player based on its CState component
+	//if the player's state has been set to running 
+	//change its animation to a repeating a run animation
+	//NOTE : adding a component that already exists simply overwrites it
+	if (currentState == "Idle" && currentAnim != "Idle")
+	{
+		m_player->add<CAnimation>(Assets::Instance().getAnimation("Idle"), true);
+	}
+	else if (currentState == "Run" && currentAnim != "Run")
+	{
+		m_player->add<CAnimation>(Assets::Instance().getAnimation("Run"), true);
+	}
+	else if (currentState == "Jump" && currentAnim != "Jump")
+	{
+		m_player->add<CAnimation>(Assets::Instance().getAnimation("Jump"), true);
+	}
+	
 
 	//TODO : for eachentity with an animation , call entity->get<CAnimation>().animation.update()
 	//if the animation is not repeated and has ended , destroy the entity
 
-	//TODO : set the animation of the player based on its CState component
-	//if the player's state has been set to running 
-	if (m_player->get<CState>().state == "run")
+	for (auto& e : m_entityManager.getEntities())
 	{
-		//change its animation to a repeating a run animation
-		//NOTE : adding a component that already exists simply overwrites it
-		m_player->add<CAnimation>(Assets::Instance().getAnimation("Run"), true);
+		
+	
+		if (e->get<CAnimation>().repeat == false && e->get<CAnimation>().animation.hasEnded())
+		{
+			e->destroy();
+		}
+		else
+		{
+			e->get<CAnimation>().animation.update();
+		}
+		
 	}
+	
 }
 
 void Scene_Platformer::sGUI()
