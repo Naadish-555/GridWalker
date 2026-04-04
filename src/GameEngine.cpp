@@ -90,9 +90,17 @@ void GameEngine::run()
 		sf::Time deltaTime = m_deltaClock.restart();
 		float deltaTimeSeconds = deltaTime.asSeconds();
 
+
 		//make sure delta time stays within normal bounds, like between one FPS and zero FPS
 		deltaTimeSeconds = std::min(deltaTimeSeconds, 1.f);
 		deltaTimeSeconds = std::max(deltaTimeSeconds, 0.f);
+
+
+		m_dt = deltaTimeSeconds;
+		if (m_dt > 0.0f)
+		{
+			m_fps = 1.0f / m_dt;
+		}
 
 		ImGui::SFML::Update(m_window, deltaTime);
 		update();

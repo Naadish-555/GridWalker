@@ -3,7 +3,7 @@
 # Order: Width, Height, Red, Green, Blue, FrameLimit, Fullscreen (0=Windowed, 1=Fullscreen)
 # R,G,B values for window background color
 # ==========================================
-Window 1080 720 25 25 25 60 1 
+Window 1440 860 25 25 25 60 0 
 
 # ==========================================
 # FONT SETTINGS

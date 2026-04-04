@@ -55,7 +55,11 @@ void Scene_Platformer::loadLevel(const std::string& fileName)
 		}
 		else if (input == "Player")
 		{
-			fin >> m_playerConfig.X >> m_playerConfig.Y >> m_playerConfig.CX >> m_playerConfig.CY >> m_playerConfig.SPEED >> m_playerConfig.MAXSPEED >> m_playerConfig.JUMP >> m_playerConfig.GRAVITY >> m_playerConfig.weapon;
+			fin >> m_playerConfig.X >> m_playerConfig.Y >> m_playerConfig.CX >> m_playerConfig.CY >> m_playerConfig.BB_OSX >> m_playerConfig.BB_OSY >> m_playerConfig.SPEED >> m_playerConfig.MAX_SPEED >> m_playerConfig.JUMP >> m_playerConfig.GRAVITY ;
+		}
+		else if (input == "Weapon")
+		{
+			fin >> m_weaponConfig.WEAPON>> m_weaponConfig.CX >> m_weaponConfig.CY >> m_weaponConfig.POS_OSX >> m_weaponConfig.POS_OSY >> m_weaponConfig.SPEED >> m_weaponConfig.LS;
 		}
 	}
 	//TODO: read in the level file and the appropriate entities
@@ -116,7 +120,7 @@ void Scene_Platformer::spawnPlayer()
 	//here is a sample player entity which you can use to construct other entities
 	m_player->add<CAnimation>(Assets::Instance().getAnimation("Idle"), true);
 	m_player->add<CTransform>(gridToMidPixel(m_playerConfig.X,m_playerConfig.Y,m_player));
-	m_player->add<CBoundingBox>(Vec2(m_playerConfig.CX, m_playerConfig.CY));
+	m_player->add<CBoundingBox>(Vec2(m_playerConfig.CX, m_playerConfig.CY),  Vec2(0, 7));
 	m_player->add<CState>("Idle");
 	m_player->add<CGravity>(m_playerConfig.GRAVITY);
 	m_player->add<CInput>();
@@ -157,16 +161,16 @@ void Scene_Platformer::spawnBullet()
 	auto bullet = m_entityManager.addEntity("Bullet");
 	auto& playerTf = m_player->get<CTransform>();
 
-	float bOffset = 10.0f;
-	float bSpeed = 15.0f;
+	Vec2 bOffset = Vec2(m_weaponConfig.POS_OSX, m_weaponConfig.POS_OSY);
 
 
-	bullet->add<CAnimation>(Assets::Instance().getAnimation("BusterGolden"), true);
-	bullet->add<CTransform>(Vec2(playerTf.pos.x, playerTf.pos.y + bOffset));
-	bullet->add<CBoundingBox>(Assets::Instance().getAnimation("BusterGolden").getSize());
+	bullet->add<CAnimation>(Assets::Instance().getAnimation(m_weaponConfig.WEAPON), true);
+	bullet->add<CTransform>(Vec2(playerTf.pos.x + bOffset.x, playerTf.pos.y + bOffset.y));
+	bullet->add<CBoundingBox>(Vec2(m_weaponConfig.CX,m_weaponConfig.CY));
+	bullet->add<CLifespan>(m_weaponConfig.LS);
 	
 	auto& bulletTf = bullet->get<CTransform>();
-	bulletTf.velocity.x = playerTf.scale.x * bSpeed;
+	bulletTf.velocity.x = playerTf.scale.x * m_weaponConfig.SPEED;
 }
 
 
@@ -182,6 +186,8 @@ void Scene_Platformer::update()
 	m_entityManager.update();
 
 	//TODO : implement pause functionality
+	m_Fps = m_game->getFps();
+	m_Dt = m_game->getDeltaTime();
 
 	sMovement();
 	sLifeSpan();
@@ -251,8 +257,8 @@ void Scene_Platformer::sMovement()
 		else
 			tf.velocity.x -= accel;
 
-		if (tf.velocity.x <= m_playerConfig.MAXSPEED)
-			tf.velocity.x = -m_playerConfig.MAXSPEED;
+		if (tf.velocity.x <= m_playerConfig.MAX_SPEED)
+			tf.velocity.x = -m_playerConfig.MAX_SPEED;
 
 		tf.scale.x = -1;
 	}
@@ -263,18 +269,17 @@ void Scene_Platformer::sMovement()
 		else
 			tf.velocity.x += accel;
 
-		if (tf.velocity.x >= m_playerConfig.MAXSPEED)
-			tf.velocity.x = m_playerConfig.MAXSPEED;
+		if (tf.velocity.x >= m_playerConfig.MAX_SPEED)
+			tf.velocity.x = m_playerConfig.MAX_SPEED;
 		tf.scale.x = 1;
 	}
-	else if (input.down)
-	{
-		tf.velocity.y = m_playerConfig.JUMP;
-	}
+	//else if (input.down)
+	//{
+	//	tf.velocity.y = m_playerConfig.JUMP;
+	//}
 	else
 	{
 		tf.velocity.x = 0;
-		tf.velocity.y = 0;
 	}
 	if (input.jump && input.canJump)
 	{
@@ -285,20 +290,19 @@ void Scene_Platformer::sMovement()
 		tf.velocity.y *= 0.5f;
 	}
 
-	
-
 
 	if (input.shoot && input.canShoot)
 	{
 		spawnBullet();
 		input.canShoot = false;
-		std::cout << "prev pos : " << tf.prevPos.x << " , " << tf.prevPos.y << std::endl;
-		std::cout << "current pos : " <<tf.pos.x << " , " << tf.pos.y << std::endl;
+		//std::cout << "prev pos : " << tf.prevPos.x << " , " << tf.prevPos.y << std::endl;
+		//std::cout << "current pos : " <<tf.pos.x << " , " << tf.pos.y << std::endl;
 	}
 
 	tf.prevPos = tf.pos;
-	tf.pos += tf.velocity;
-	tf.velocity.y += m_playerConfig.GRAVITY;
+	tf.pos += tf.velocity * m_Dt * m_idealFps;
+	tf.velocity.y += m_playerConfig.GRAVITY * m_Dt * m_idealFps;
+
 	if (tf.velocity.x != 0 )
 	{
 		state.state = "Run";
@@ -313,7 +317,7 @@ void Scene_Platformer::sMovement()
 		if (e->tag() == "Player") { continue; }
 
 		e->get<CTransform>().prevPos = e->get<CTransform>().pos;
-		e->get<CTransform>().pos += e->get<CTransform>().velocity;
+		e->get<CTransform>().pos += e->get<CTransform>().velocity * m_Dt * m_idealFps;
 	}
 
 	// Implement gravity effect on player
@@ -326,6 +330,28 @@ void Scene_Platformer::sLifeSpan()
 {
 	//TODO : check lifespan of entities that have them and destroy if they go over their given life span
 	// same as poly wars 
+	for (auto& e : m_entityManager.getEntities()) 
+	{
+		if (!e->get<CLifespan>().exists) { continue; }
+
+		auto& ls = e->get<CLifespan>();
+
+		if (ls.remaining <= 0 && e->isActive())
+		{
+			e->destroy();
+		}
+		
+		//float lifeRatio = (float)ls.remaining / (float)ls.total;
+
+		//int alpha = lifeRatio * 255;
+
+		//sf::Color fillColor = e->get<CAnimation>().animation.getSprite().getColor();
+		//fillColor.a = alpha;
+		//e->get<CAnimation>().animation.getSprite().setColor(fillColor);
+
+		ls.remaining -= m_Dt ;
+	}
+
 }
 
 void Scene_Platformer::sCollision()
@@ -349,6 +375,9 @@ void Scene_Platformer::sCollision()
 			auto& tTf = t->get<CTransform>();
 			auto& tBB = t->get<CBoundingBox>();
 
+			Vec2 pCenter = pTf.pos + pBB.offset;
+			Vec2 tCenter = tTf.pos + tBB.offset;
+
 			/*if(m_player->get<CInput>().up)
 			{		
 				std::cout << "current : " << ol.x << " , " << ol.y << std::endl;
@@ -359,7 +388,7 @@ void Scene_Platformer::sCollision()
 			if (prevOl.y > 0)
 			{
 
-				if(pTf.pos.x  < tTf.pos.x ) //player is left
+				if(pCenter.x  < tCenter.x ) //player is left
 					pTf.pos.x -= ol.x;
 				else
 					pTf.pos.x += ol.x;
@@ -367,7 +396,7 @@ void Scene_Platformer::sCollision()
 			}
 			else if (prevOl.x > 0)
 			{
-				if (pTf.pos.y > tTf.pos.y) //player is below
+				if (pCenter.y > tCenter.y) //player is below
 					pTf.pos.y += ol.y;
 				else
 					pTf.pos.y -= ol.y;
@@ -461,6 +490,57 @@ void Scene_Platformer::sGUI()
 	ImGui::Begin("Scene Properties");
 	if (ImGui::BeginTabBar("Debug"))
 	{
+		if (ImGui::BeginTabItem("STATS"))
+		{
+			ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Performance");
+			ImGui::Separator();
+
+			// ImGui automatically tracks FPS and Frame Time under the hood
+			ImGui::Text("ImGUI FPS: %.1f", ImGui::GetIO().Framerate);
+			ImGui::Text("ImGUI Frame Time: %.3f ms/frame", 1000.0f / ImGui::GetIO().Framerate);
+			
+			ImGui::Spacing();
+			
+			//ImGui::Text("Engine FPS: %.1f", m_Fps);
+			ImGui::Text("Engine Frame Time: %.3f s/frame", m_Dt);
+
+			ImGui::Spacing();
+	
+			// 2. ECS (ENTITY) STATS
+			ImGui::TextColored(ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "ECS Statistics");
+			ImGui::Separator();
+
+			ImGui::Text("Total Entities: %zu", m_entityManager.getEntities().size());
+			ImGui::Text("Players: %zu", m_entityManager.getEntities("Player").size());
+			ImGui::Text("Bullets: %zu", m_entityManager.getEntities("Bullet").size());
+			ImGui::Text("Tiles: %zu", m_entityManager.getEntities("Tile").size());
+
+
+			ImGui::Spacing();
+
+			// 3. WORLD & INPUT STATE
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "World & Input");
+			ImGui::Separator();
+
+			// Mouse coordinates 
+			ImVec2 mousePos = ImGui::GetMousePos();
+			ImGui::Text("Mouse Screen Pos: (%.0f, %.0f)", mousePos.x, mousePos.y);
+
+			ImGui::Spacing();
+
+			//4. Debug systems
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Debug options");
+			ImGui::Separator();
+
+			
+			ImGui::Checkbox("Render Textures", &m_drawTextures);
+			ImGui::Checkbox("Render Grid ", &m_drawGrid);
+			ImGui::Checkbox("Render Bounding Boxes", &m_drawCollision);
+
+			ImGui::EndTabItem();
+		}
+		
+
 		if (ImGui::BeginTabItem("Actions"))
 		{
 			for (const auto& [key, name] : getActionMap())
@@ -556,7 +636,7 @@ void Scene_Platformer::sRender()
 				auto& transform = e->get<CTransform>();
 				sf::RectangleShape rect;
 				rect.setSize(sf::Vector2f(box.size.x - 1, box.size.y - 1));
-				rect.setOrigin(sf::Vector2f(box.halfSize.x, box.halfSize.y));
+				rect.setOrigin(sf::Vector2f(box.halfSize.x - box.offset.x, box.halfSize.y - box.offset.y));
 				rect.setPosition(transform.pos.x,transform.pos.y);
 				rect.setFillColor(sf::Color(0, 0, 0, 0));
 				rect.setOutlineColor(sf::Color(255, 255, 255, 255));

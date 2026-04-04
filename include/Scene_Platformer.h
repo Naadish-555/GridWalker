@@ -7,18 +7,30 @@ class Scene_Platformer : public Scene
 {
 	struct PlayerConfig
 	{
-		float X, Y, CX, CY, SPEED, MAXSPEED, JUMP, GRAVITY;
-		std::string weapon;
+		float X, Y, CX, CY, BB_OSX, BB_OSY, SPEED, MAX_SPEED, JUMP, GRAVITY;
+		
+	};
+
+	struct WeaponConfig 
+	{ 
+		
+		float CX, CY, POS_OSX, POS_OSY, SPEED, LS;
+		std::string WEAPON;
 	};
 
 protected:
 	std::shared_ptr<Entity>		m_player;
 	std::string					m_levelPath;
 	PlayerConfig				m_playerConfig;
+	WeaponConfig				m_weaponConfig;
 	bool						m_drawTextures = true;
 	bool						m_drawCollision = false;
 	bool						m_drawGrid = false;
 	const Vec2					m_gridSize = { 64,64 };
+
+	int							m_Fps;
+	float						m_Dt;
+	float						m_idealFps = 60.0f;
 
 protected : 
 

@@ -10,7 +10,7 @@ namespace Physics
 	//if a point is inside entity or not
 	bool IsInside(const Vec2& pos, std::shared_ptr<Entity> e)
 	{
-		Vec2 topLeft = e->get<CTransform>().pos;
+		Vec2 topLeft = e->get<CTransform>().pos ;
 		Vec2 widthHeight = e->get<CBoundingBox>().size;
 		if (pos.x > topLeft.x && pos.x < topLeft.x + widthHeight.x && pos.y >topLeft.y && pos.y < topLeft.y + widthHeight.y)
 		{
@@ -38,8 +38,8 @@ namespace Physics
 		Vec2 aHalfWH = a->get<CBoundingBox>().halfSize;
 		Vec2 bHalfWH = b->get<CBoundingBox>().halfSize;
 
-		Vec2 aP = a->get<CTransform>().pos;
-		Vec2 bP = b->get<CTransform>().pos;
+		Vec2 aP = a->get<CTransform>().pos + a->get<CBoundingBox>().offset;
+		Vec2 bP = b->get<CTransform>().pos + b->get<CBoundingBox>().offset;
 
 		Vec2 delta = Vec2(std::abs(aP.x - bP.x), std::abs(aP.y - bP.y));
 		float ox = aHalfWH.x + bHalfWH.x - delta.x;
@@ -57,8 +57,8 @@ namespace Physics
 		Vec2 aHalfWH = a->get<CBoundingBox>().halfSize;
 		Vec2 bHalfWH = b->get<CBoundingBox>().halfSize;
 
-		Vec2 aP = a->get<CTransform>().prevPos ;
-		Vec2 bP = b->get<CTransform>().prevPos ;
+		Vec2 aP = a->get<CTransform>().prevPos + a->get<CBoundingBox>().offset;
+		Vec2 bP = b->get<CTransform>().prevPos + b->get<CBoundingBox>().offset;
 
 		Vec2 delta = Vec2(std::abs(aP.x - bP.x), std::abs(aP.y - bP.y));
 		float ox = aHalfWH.x + bHalfWH.x - delta.x;
@@ -72,11 +72,16 @@ namespace Physics
 	{
 		if (!a->has<CBoundingBox>() || !b->has<CBoundingBox>()) { return false; }
 
-		Vec2 aTL = a->get<CTransform>().pos - a->get<CBoundingBox>().halfSize;
-		Vec2 aWH = a->get<CBoundingBox>().size;
+		auto& aTf = a->get<CTransform>();
+		auto& aBb = a->get<CBoundingBox>();
 
-		Vec2 bTL = b->get<CTransform>().pos - b->get<CBoundingBox>().halfSize;
-		Vec2 bWH = b->get<CBoundingBox>().size;
+		Vec2 aTL = aTf.pos - aBb.halfSize + aBb.offset ;
+		Vec2 aWH = aBb.size;
+
+		auto& bTf = b->get<CTransform>();
+		auto& bBb = b->get<CBoundingBox>();
+		Vec2 bTL = bTf.pos - bBb.halfSize + bBb.offset;
+		Vec2 bWH = bBb.size;
 
 		if (aTL.x < bTL.x + bWH.x && bTL.x < aTL.x + aWH.x)
 		{

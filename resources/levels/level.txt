@@ -125,4 +125,5 @@ Tile Ground1 99 8
 Tile Ground1 99 9
 Tile Ground1 99 10
 Tile Ground1 99 11
-Player 1 5	 32 64 3 8 20 1 Buster
+Player 1 5 32 48 0 15 3 8 20 1 
+Weapon BusterGolden 16 16 0 10 12 3  

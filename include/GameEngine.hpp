@@ -24,7 +24,8 @@ protected:
 	size_t			 m_simulationSpeed = 1;
 	sf::Clock		 m_deltaClock;
 	bool			 m_running = true;
-	int				 m_fps = 0;
+	float			 m_fps = 0;
+	float			 m_dt = 0;
 
 	WindowConfig	 m_windowConfig;
 
@@ -43,7 +44,8 @@ public:
 
 	sf::RenderWindow& window() { return m_window; }
 	bool isRunning() { return m_running && m_window.isOpen(); }
-	const int getFps() const { return m_fps; }
+	const float getFps() const { return m_fps; }
+	const float getDeltaTime() const { return m_dt; }
 };
 
 
