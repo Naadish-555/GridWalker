@@ -117,7 +117,6 @@ public:
 	bool jump = false;
 	bool shoot = false;
 	bool canShoot = true;
-	bool canJump = true;
 
 	CInput() = default;
 };
@@ -148,7 +147,8 @@ public:
 class CGravity : public Component
 {
 public:
-	float gravity;
+	float gravity = 9.8;
+	bool isGrounded = false;
 	CGravity() = default;
 	CGravity(float g)
 		: gravity(g) {}
@@ -157,7 +157,8 @@ public:
 class CState : public Component
 {
 public:
-	std::string state = "jumping";
+	std::string state = "Jump";
+
 	CState() = default;
 	CState(const std::string& s)
 		: state(s) {}

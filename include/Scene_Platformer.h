@@ -62,8 +62,8 @@ public:
 	void sCollision();
 	void sAnimation();
 	void sGUI();
-	void sEnemySpawner();
-	void sDebug();
+	//void sEnemySpawner();
+	//void sDebug();
 	
 	//drawLine() but already implemented in Scene.hpp	
 

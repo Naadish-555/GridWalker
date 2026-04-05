@@ -77,10 +77,10 @@ void Scene_Platformer::loadLevel(const std::string& fileName)
 	//NOTE : final code should use position from aseets.txt and utilise gridToMidPixel function
 	//brick->add<CTransform>(gridToMidPixel(gridX,gridY,brick));
 
-	if (brick->get<CAnimation>().animation.getName() == "Brick")
-	{
-		//could be a good way of identifying entity tile brick
-	}
+	///could be a good way of identifying entity tile brick
+	//if (brick->get<CAnimation>().animation.getName() == "Brick")
+	//{
+	//}
 
 	auto block = m_entityManager.addEntity("Tile");
 	block->add<CAnimation>(Assets::Instance().getAnimation("Box"), true);
@@ -189,10 +189,13 @@ void Scene_Platformer::update()
 	m_Fps = m_game->getFps();
 	m_Dt = m_game->getDeltaTime();
 
-	sMovement();
-	sLifeSpan();
-	sCollision();
-	sAnimation();
+	if (!m_paused)
+	{
+		sMovement();
+		sLifeSpan();
+		sCollision();
+		sAnimation();
+	}
 	sGUI();
 	sRender();
 
@@ -244,6 +247,9 @@ void Scene_Platformer::sMovement()
 {
 	//TODO :
 	// implement player movement/jumping based on its CInput component
+
+	//x-dxn movement
+
 	auto& input = m_player->get<CInput>();
 	auto& tf = m_player->get<CTransform>();
 	auto& state = m_player->get<CState>();
@@ -281,7 +287,11 @@ void Scene_Platformer::sMovement()
 	{
 		tf.velocity.x = 0;
 	}
-	if (input.jump && input.canJump)
+
+
+	//y-dxn movement
+
+	if (input.jump && gravity.isGrounded)
 	{
 		tf.velocity.y = -m_playerConfig.JUMP;
 	}
@@ -289,7 +299,7 @@ void Scene_Platformer::sMovement()
 	{
 		tf.velocity.y *= 0.5f;
 	}
-
+	gravity.isGrounded = false;
 
 	if (input.shoot && input.canShoot)
 	{
@@ -372,11 +382,14 @@ void Scene_Platformer::sCollision()
 		
 			auto& pTf = m_player->get<CTransform>();
 			auto& pBB = m_player->get<CBoundingBox>();
+			auto& pG = m_player->get<CGravity>();
+			
 			auto& tTf = t->get<CTransform>();
 			auto& tBB = t->get<CBoundingBox>();
 
 			Vec2 pCenter = pTf.pos + pBB.offset;
 			Vec2 tCenter = tTf.pos + tBB.offset;
+
 
 			/*if(m_player->get<CInput>().up)
 			{		
@@ -385,6 +398,7 @@ void Scene_Platformer::sCollision()
 			}*/
 
 			//collision resolution
+				
 			if (prevOl.y > 0)
 			{
 
@@ -399,7 +413,11 @@ void Scene_Platformer::sCollision()
 				if (pCenter.y > tCenter.y) //player is below
 					pTf.pos.y += ol.y;
 				else
+				{
 					pTf.pos.y -= ol.y;
+					pG.isGrounded = true;
+					//pTf.velocity.y = 0;
+				}
 				pTf.velocity.y = 0;
 			}
 		}
@@ -675,12 +693,12 @@ void Scene_Platformer::sRender()
 	}
 }
 
-void Scene_Platformer::sEnemySpawner()
-{
-
-}
-
-void Scene_Platformer::sDebug()
-{
-
-}
+//void Scene_Platformer::sEnemySpawner()
+//{
+//
+//}
+//
+//void Scene_Platformer::sDebug()
+//{
+//
+//}
