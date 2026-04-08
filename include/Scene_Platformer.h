@@ -32,6 +32,8 @@ protected:
 	float						m_Dt;
 	float						m_idealFps = 60.0f;
 
+	bool						m_respawnPlayer = false;
+
 protected : 
 
 	void init(const std::string& levelPath);

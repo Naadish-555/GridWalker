@@ -47,7 +47,7 @@ void Scene_Platformer::loadLevel(const std::string& fileName)
 	{
 		fin >> input;
 		std::cout << "Token read [" << input << " ]" << std::endl;
-		if (input == "Tile" || input == "Dec")
+		if (input == "Tile" || input == "Decor" || input == "Collectible")
 		{
 			tag = input;
 			fin >> animName >> gridX >> gridY;
@@ -67,13 +67,18 @@ void Scene_Platformer::loadLevel(const std::string& fileName)
 
 
 	//NOTE : below code is sample code for setting up and using entities , remove it later
+
+
 	spawnPlayer();
 
+	//else {
+	//	std::cout << "PLAYER POINTER IS NULL!" << std::endl;
+	
 	//some sample entities
-	auto brick = m_entityManager.addEntity("Tile");
-	//NOTE : always add the CAnimation component first so that the gridToMidPixel can al
-	brick->add<CAnimation>(Assets::Instance().getAnimation("Brick"), true);
-	brick->add<CTransform>(gridToMidPixel(1, 3, brick));
+	//auto brick = m_entityManager.addEntity("Tile");
+	////NOTE : always add the CAnimation component first so that the gridToMidPixel can al
+	//brick->add<CAnimation>(Assets::Instance().getAnimation("Brick"), true);
+	//brick->add<CTransform>(gridToMidPixel(1, 3, brick));
 	//NOTE : final code should use position from aseets.txt and utilise gridToMidPixel function
 	//brick->add<CTransform>(gridToMidPixel(gridX,gridY,brick));
 
@@ -82,20 +87,6 @@ void Scene_Platformer::loadLevel(const std::string& fileName)
 	//{
 	//}
 
-	auto block = m_entityManager.addEntity("Tile");
-	block->add<CAnimation>(Assets::Instance().getAnimation("Box"), true);
-	block->add<CTransform>(Vec2(224, 550));
-	
-	auto block2 = m_entityManager.addEntity("Tile");
-	block2->add<CAnimation>(Assets::Instance().getAnimation("Box"), true);
-	block2->add<CTransform>(gridToMidPixel(3,6,block2));
-
-	//addeed a bounding box, will show up if press the 'B' key
-	block->add<CBoundingBox>(Assets::Instance().getAnimation("Box").getSize());
-
-	auto question = m_entityManager.addEntity("Tile");
-	question->add<CAnimation>(Assets::Instance().getAnimation("MetalBox"), true);
-	question->add<CTransform>(Vec2(352, 480));
 
 }
 
@@ -120,7 +111,7 @@ void Scene_Platformer::spawnPlayer()
 	//here is a sample player entity which you can use to construct other entities
 	m_player->add<CAnimation>(Assets::Instance().getAnimation("Idle"), true);
 	m_player->add<CTransform>(gridToMidPixel(m_playerConfig.X,m_playerConfig.Y,m_player));
-	m_player->add<CBoundingBox>(Vec2(m_playerConfig.CX, m_playerConfig.CY),  Vec2(0, 7));
+	m_player->add<CBoundingBox>(Vec2(m_playerConfig.CX, m_playerConfig.CY),  Vec2(m_playerConfig.BB_OSX, m_playerConfig.BB_OSY));
 	m_player->add<CState>("Idle");
 	m_player->add<CGravity>(m_playerConfig.GRAVITY);
 	m_player->add<CInput>();
@@ -143,13 +134,22 @@ void Scene_Platformer::spawnLevelTiles(std::string& tag, std::string& animName, 
 
 		//tile->get<CTransform>().prevPos = pos;
 	}
-	else if (tag == "Dec")
+	else if (tag == "Decor")
 	{
 		auto dec = m_entityManager.addEntity(tag);
-		//Vec2 pos = gridToMidPixel(gridX, gridY, dec);
 		dec->add<CAnimation>(Assets::Instance().getAnimation(animName), true);
 		dec->add<CTransform>(gridToMidPixel(gridX, gridY, dec));
-		
+		//dec->add<CBoundingBox>(Assets::Instance().getAnimation(animName).getSize());
+
+		//dec->get<CTransform>().prevPos = pos;
+	}
+	else if (tag == "Collectible")
+	{
+		auto collectible = m_entityManager.addEntity(tag);
+		collectible->add<CAnimation>(Assets::Instance().getAnimation(animName), true);
+		collectible->add<CTransform>(gridToMidPixel(gridX, gridY, collectible));
+		collectible->add<CBoundingBox>(Assets::Instance().getAnimation(animName).getSize());
+
 		//dec->get<CTransform>().prevPos = pos;
 	}
 }
@@ -183,6 +183,7 @@ void Scene_Platformer::onEnd()
 
 void Scene_Platformer::update()
 {
+
 	m_entityManager.update();
 
 	//TODO : implement pause functionality
@@ -294,12 +295,13 @@ void Scene_Platformer::sMovement()
 	if (input.jump && gravity.isGrounded)
 	{
 		tf.velocity.y = -m_playerConfig.JUMP;
+		state.state = "Jump";
 	}
 	if (!input.jump && tf.velocity.y < 0)
 	{
 		tf.velocity.y *= 0.5f;
 	}
-	gravity.isGrounded = false;
+	
 
 	if (input.shoot && input.canShoot)
 	{
@@ -308,20 +310,29 @@ void Scene_Platformer::sMovement()
 		//std::cout << "prev pos : " << tf.prevPos.x << " , " << tf.prevPos.y << std::endl;
 		//std::cout << "current pos : " <<tf.pos.x << " , " << tf.pos.y << std::endl;
 	}
+	
+	tf.velocity.y += m_playerConfig.GRAVITY * m_Dt * m_idealFps;
 
 	tf.prevPos = tf.pos;
 	tf.pos += tf.velocity * m_Dt * m_idealFps;
-	tf.velocity.y += m_playerConfig.GRAVITY * m_Dt * m_idealFps;
 
-	if (tf.velocity.x != 0 )
+	if (!gravity.isGrounded)
 	{
-		state.state = "Run";
+		state.state = "Jump";
 	}
-	else if(tf.velocity.x == 0)
+	else
 	{
-		state.state = "Idle";
+		if (tf.velocity.x != 0 )
+		{
+			state.state = "Run";
+		}
+		else if(tf.velocity.x == 0)
+		{
+			state.state = "Idle";
+		}
 	}
-		
+	gravity.isGrounded = false;
+
 	for (auto& e : m_entityManager.getEntities())
 	{
 		if (e->tag() == "Player") { continue; }
@@ -371,6 +382,10 @@ void Scene_Platformer::sCollision()
 	//and gravity will have a positive y-component
 	//Also something below else will have a y value grater than it
 	//something above something else will have a y value less than it
+	auto& pTf = m_player->get<CTransform>();
+	auto& pBB = m_player->get<CBoundingBox>();
+	auto& pG = m_player->get<CGravity>();
+
 	for (auto& t : m_entityManager.getEntities("Tile"))
 	{
 
@@ -380,9 +395,6 @@ void Scene_Platformer::sCollision()
 			Vec2 ol = Physics::GetOverlap(m_player, t);
 			Vec2 prevOl = Physics::GetPreviousOverlap(m_player, t);
 		
-			auto& pTf = m_player->get<CTransform>();
-			auto& pBB = m_player->get<CBoundingBox>();
-			auto& pG = m_player->get<CGravity>();
 			
 			auto& tTf = t->get<CTransform>();
 			auto& tBB = t->get<CBoundingBox>();
@@ -411,7 +423,10 @@ void Scene_Platformer::sCollision()
 			else if (prevOl.x > 0)
 			{
 				if (pCenter.y > tCenter.y) //player is below
+				{
 					pTf.pos.y += ol.y;
+
+				}
 				else
 				{
 					pTf.pos.y -= ol.y;
@@ -437,7 +452,46 @@ void Scene_Platformer::sCollision()
 		
 		
 		
+	}
 		
+	if (!pG.isGrounded)
+	{
+		Vec2 pCenter = pTf.pos + pBB.offset;
+
+		if (pCenter.y > m_game->window().getSize().y)
+		{
+			pTf.pos = gridToMidPixel(m_playerConfig.X, m_playerConfig.Y,m_player);
+			pTf.velocity =  Vec2(0, 0);
+		
+		}
+
+	}
+
+
+	for (auto& c : m_entityManager.getEntities("Collectible"))
+	{
+		if (Physics::IsCollision(m_player, c))
+		{
+			c->remove<CBoundingBox>();
+			/*if (c->get<CAnimation>().animation.getName() == "Coin")
+			{
+			}
+			else if (c->get<CAnimation>().animation.getName() == "Flag_Pole")
+			{
+
+			}*/
+
+
+			/*auto& pTf = m_player->get<CTransform>();
+			auto& pBB = m_player->get<CBoundingBox>();`	
+			auto& pG = m_player->get<CGravity>();
+
+			auto& cTf = c->get<CTransform>();
+			auto& cBB = c->get<CBoundingBox>();
+
+			Vec2 pCenter = pTf.pos + pBB.offset;
+			Vec2 tCenter = tTf.pos + tBB.offset;*/
+		}
 	}
 	//TODO : Implement Physcics::GetOverlap() and use it inside this function
 
@@ -482,17 +536,34 @@ void Scene_Platformer::sAnimation()
 
 	for (auto& e : m_entityManager.getEntities())
 	{
-		
-	
-		if (e->get<CAnimation>().repeat == false && e->get<CAnimation>().animation.hasEnded())
+		if (e->get<CAnimation>().repeat == false && e->get<CAnimation>().animation.hasEnded() && e->get<CAnimation>().nextAnimation == "")
 		{
 			e->destroy();
+		}
+		else if (e->get<CAnimation>().repeat == false && e->get<CAnimation>().animation.hasEnded() && e->get<CAnimation>().nextAnimation != "")
+		{
+			auto& next = e->get<CAnimation>().nextAnimation;
+			e->add<CAnimation>(Assets::Instance().getAnimation(next), true);
 		}
 		else
 		{
 			e->get<CAnimation>().animation.update();
 		}
-		
+	
+		if (e->tag() == "Collectible")
+		{
+			if (e->has<CBoundingBox>()) continue;
+
+			if (e->get<CAnimation>().animation.getName() == "Coin")
+			{
+				e->add<CAnimation>(Assets::Instance().getAnimation("Collected"),false);
+			}
+			else if (e->get<CAnimation>().animation.getName() == "FlagPole")
+			{
+				e->add<CAnimation>(Assets::Instance().getAnimation("FlagOut"), false, "FlagWave");
+			}
+		}
+
 	}
 	
 }
@@ -532,6 +603,8 @@ void Scene_Platformer::sGUI()
 			ImGui::Text("Players: %zu", m_entityManager.getEntities("Player").size());
 			ImGui::Text("Bullets: %zu", m_entityManager.getEntities("Bullet").size());
 			ImGui::Text("Tiles: %zu", m_entityManager.getEntities("Tile").size());
+			ImGui::Text("Collectibles: %zu", m_entityManager.getEntities("Collectible").size());
+			//ImGui::Text("Decorations: %zu", m_entityManager.getEntities("Decor").size());
 
 
 			ImGui::Spacing();
@@ -625,7 +698,7 @@ void Scene_Platformer::sRender()
 	// draw all Entity textures/animations
 	if (m_drawTextures)
 	{
-		for (auto e : m_entityManager.getEntities())
+		for (auto& e : m_entityManager.getEntities())
 		{
 			auto& transform = e->get<CTransform>();
 
@@ -646,7 +719,7 @@ void Scene_Platformer::sRender()
 	//draw all entity collision bounding boxes with a rectangle shape
 	if (m_drawCollision)
 	{
-		for (auto e : m_entityManager.getEntities())
+		for (auto& e : m_entityManager.getEntities())
 		{
 			if (e->has<CBoundingBox>())
 			{
@@ -667,7 +740,7 @@ void Scene_Platformer::sRender()
 	//draw the grid for easy debug
 	if (m_drawGrid)
 	{
-		float leftX = m_game->window().getView().getCenter().x - width() / 2;
+		float leftX = m_game->window().getView().getCenter().x - (float)width() / 2;
 		float rightX = leftX + width() + m_gridSize.x;
 		float nextGridX = leftX - ((int)leftX % (int)m_gridSize.x);
 

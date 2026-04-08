@@ -97,6 +97,11 @@ void GameEngine::run()
 
 
 		m_dt = deltaTimeSeconds;
+		if (m_dt > 0.05f)
+		{
+			m_dt = 0.05f;
+		}
+
 		if (m_dt > 0.0f)
 		{
 			m_fps = 1.0f / m_dt;

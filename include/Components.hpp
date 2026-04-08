@@ -124,8 +124,8 @@ public:
 class CBoundingBox : public Component
 {
 public:
-	Vec2 size;
-	Vec2 halfSize;
+	Vec2 size = Vec2(0, 0);
+	Vec2 halfSize = Vec2(0, 0);
 	Vec2 offset = Vec2(0,0);			
 	CBoundingBox() = default;
 	CBoundingBox(const Vec2& s)
@@ -140,8 +140,9 @@ public:
 	Animation animation;
 	bool repeat = false;
 	CAnimation() = default;
-	CAnimation(const Animation& anim, bool r)
-		: animation(anim), repeat(r) {}
+	std::string nextAnimation = "";
+	CAnimation(const Animation& anim, bool r, const std::string& nextAnim = "")
+		: animation(anim), repeat(r), nextAnimation(nextAnim) {}
 };
 
 class CGravity : public Component
