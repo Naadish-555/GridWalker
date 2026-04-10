@@ -162,36 +162,38 @@ void GameEngine::sUserInput()
 			default:
 				break;
 			}
-
-			if (event.type == sf::Event::MouseButtonReleased)
-			{
-				switch (event.mouseButton.button)
-				{
-				case sf::Mouse::Left:
-				{
-					currentScene()->doAction(Action("LEFT_CLICK", "END", pos));
-					break;
-				}
-				case sf::Mouse::Middle:
-				{
-					currentScene()->doAction(Action("MIDDLE_CLICK", "END", pos));
-					break;
-				}
-				case sf::Mouse::Right:
-				{
-					currentScene()->doAction(Action("RIGHT_CLICK", "END", pos));
-					break;
-				}
-				default:
-					break;
-				}
-
-				if (event.type == sf::Event::MouseMoved)
-				{
-					currentScene()->doAction(Action("MOUSE_MOVE", Vec2((float)event.mouseMove.x, (float)event.mouseMove.y)));
-				}
-			}
 		}
+
+		else if (event.type == sf::Event::MouseButtonReleased)
+		{
+			switch (event.mouseButton.button)
+			{
+			case sf::Mouse::Left:
+			{
+				currentScene()->doAction(Action("LEFT_CLICK", "END", pos));
+				break;
+			}
+			case sf::Mouse::Middle:
+			{
+				currentScene()->doAction(Action("MIDDLE_CLICK", "END", pos));
+				break;
+			}
+			case sf::Mouse::Right:
+			{
+				currentScene()->doAction(Action("RIGHT_CLICK", "END", pos));
+				break;
+			}
+			default:
+				break;
+			}
+
+		}
+
+		else if (event.type == sf::Event::MouseMoved)
+		{
+			currentScene()->doAction(Action("MOUSE_MOVE", Vec2((float)event.mouseMove.x, (float)event.mouseMove.y)));
+		}
+		
 	}
 }
 

@@ -704,7 +704,7 @@ void Scene_Platformer::sRender()
 
 			if (e->has<CAnimation>())
 			{
-				sf::Sprite sprite = e->get<CAnimation>().animation.getSprite();
+				sf::Sprite& sprite = e->get<CAnimation>().animation.getSprite();
 				sprite.setRotation(transform.angle);
 				sprite.setPosition(transform.pos.x,transform.pos.y);
 				sprite.setScale(transform.scale.x,transform.scale.y );
